@@ -1,0 +1,71 @@
+---
+date: "1 May 2019"
+author: "Huseyn Rahimov"
+title: "StudentsPerformance"
+output: html_document
+---
+We have an intesting data of students performing from different criterion. After inserting the data, it is better to have an average score as it will give us better results for our graphs and general overview. let's create a new data frame that involving this, we are adding a new column
+```{r}
+Avg_score <- StudentsPerformance %>% mutate("Average score" = (StudentsPerformance$`math score` + StudentsPerformance$`reading score` + StudentsPerformance$`writing score`)/3)
+```
+
+let's make all decimals to "0" in our new data frame
+```{r}
+Avg_score <- Avg_score %>% mutate_if(is.numeric, round)
+```
+
+let's test some graphs to see which one is better for visualisation and which we need for the later use of our project
+```{r}
+ggplot(data = `Avg_score`) + aes(x = `Average score`) + geom_bar()
+ggplot(data = `Avg_score`) + aes(x = `parental level of education`, y = `Average score`) + geom_bar(stat = "identity")
+ggplot(data = Avg_score) + aes(x = `Average score`, y = `gender`, color = `gender`) + geom_point(alpha = 0.3)
+ggplot(data = `Avg_score`) + aes(x = `Average score`) + geom_histogram(bins = 30) + facet_wrap(~`parental level of education`)
+ggplot(data = `Avg_score`) + aes(x = `gender`, y = `Average score`, color = `gender`) + geom_boxplot()
+ggplot(data = `Avg_score`) + aes(x = `gender`, y = `Average score`, color = `gender`) + geom_line() + facet_wrap(~`parental level of education`)
+ggplot(data = `Avg_score`) + aes(x = `gender`, y = `Average score`, color = `test preparation course`) + geom_line() + facet_wrap(~`parental level of education`)
+```
+
+Here we see, boxplot gives a fair view of how genders perform in general, women better than men, also scatter plot shows the distributon of the data
+```{r}
+ggplot(data = `Avg_score`) + aes(x = `gender`, y = `Average score`, color = `gender`) + geom_boxplot()
+ggplot(data = `Avg_score`) + aes(x = `parental level of education`, y = `Average score`, color = `gender`) + geom_boxplot()
+ggplot(`Avg_score`) + geom_jitter(aes(x = 1, y = `Average score`, position = "jitter", color = `gender`))
+ggplot(data = `Avg_score`) + aes(x = `Average score`, fill = `parental level of education`) + geom_histogram(bins = 30)
+```
+ 
+Scatter plots seperately to look for the data much closely 
+```{r}
+ggplot(`Avg_score`) + geom_jitter(aes(x = 1, y = `Average score`, position = "jitter", color = `gender`)) + facet_wrap(~gender, nrow = 2)
+ggplot(`Avg_score`) + geom_jitter(aes(x = 1, y = `math score`, position = "jitter", color = `gender`)) + facet_wrap(~gender, nrow = 2)
+ggplot(`Avg_score`) + geom_jitter(aes(x = 1, y = `math score`, position = "jitter", color = `parental level of education`)) + facet_wrap(~gender, nrow = 2) + labs(title = "Parental level of education") + theme(panel.background = element_rect(fill = "white"))
+ggplot(`Avg_score`) + geom_jitter(aes(x = 1, y = `math score`, position = "jitter", color = `gender`)) + facet_wrap(~`parental level of education`, nrow = 4)
+ggplot(`Avg_score`) + geom_jitter(aes(x = 1, y = `math score`, position = "jitter", color = `gender`)) + facet_wrap(~`race/ethnicity`, nrow = 3)
+ggplot(`Avg_score`) + geom_jitter(aes(x = 1, y = `math score`, position = "jitter", color = `gender`)) + facet_wrap(~`lunch`, nrow = 2)
+ggplot(`Avg_score`) + geom_jitter(aes(x = 1, y = `math score`, position = "jitter", color = `lunch`)) + facet_wrap(~`lunch`, nrow = 2)
+```
+ 
+Then we continue with histograms which gives us a clear view in each factors (mainly between males and females)
+```{r}
+ggplot(data = `Avg_score`) + aes(x = `Average score`, fill = `gender`) + geom_histogram(bins = 30) + facet_wrap(~`race/ethnicity`)
+ggplot(data = `Avg_score`) + aes(x = `Average score`, fill = `gender`) + geom_histogram(bins = 30) + facet_wrap(~`parental level of education`, nrow = 2)
+ggplot(data = `Avg_score`) + aes(x = `Average score`, fill = `gender`) + geom_histogram(bins = 30) + facet_wrap(~`test preparation course`)
+ggplot(data = `Avg_score`) + aes(x = `Average score`, fill = `gender`) + geom_histogram(bins = 30) + facet_wrap(~`lunch`)
+ggplot(data = `Avg_score`) + aes(x = `Average score`, fill = `lunch`) + geom_histogram(bins = 30) + facet_wrap(~`lunch`)
+```
+
+I think it is also important to see how women and men perform in math, also how races perform in math
+```{r}
+ggplot(`Avg_score`) + aes(x = `math score`, fill = `gender`) + geom_histogram(bins = 30) + facet_wrap(~gender)
+ggplot(`Avg_score`) + aes(x = `math score`, fill = `gender`) + geom_histogram(bins = 30) + facet_wrap(~`parental level of education`)
+ggplot(`Avg_score`) + aes(x = `math score`, fill = `parental level of education`) + geom_histogram(bins = 30) + facet_wrap(~`parental level of education`)
+ggplot(`Avg_score`) + aes(x = `math score`, fill = `parental level of education`) + geom_histogram(bins = 30) + facet_wrap(~`gender`)
+```
+
+let's do some stats to see the mean that is dependent on each factor
+```{r}
+Mean_gender_math <- Avg_score %>% group_by(gender) %>% summarise(mean(`math score`))
+Mean_gender_avg <- Avg_score %>% group_by(gender) %>% summarise(mean(`Average score`))
+Mean_race_avg <- Avg_score %>% group_by(`race/ethnicity`) %>% summarise(mean(`Average score`))
+cor_mat <- Avg_score %>% select_if(is.numeric) %>% cor( use = "pairwise.complete.obs")
+summary_performance <- Avg_score %>% select_if(is.numeric) %>% summary()
+```
